@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-storm-slate: #2c4a6e;
+  --color-rain-mist: #e8edf2;
+  --color-warm-sand: #c4a882;
+  --color-deep-ink: #172234;
+  --color-pale-sky: #f5f7fa;
+  --color-soft-paper: #f9f5ef;
+  --color-moon-dust: #d5dde6;
+
+  --font-heading: "Cormorant Garamond", Georgia, serif;
+  --font-body: "Manrope", "Helvetica Neue", sans-serif;
+}
+
+:root {
+  color: var(--color-deep-ink);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.95), transparent 34%),
+    linear-gradient(180deg, #f8f4ee 0%, #e8edf2 48%, #edf1f5 100%);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-deep-ink);
+  background: transparent;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background-color: rgba(196, 168, 130, 0.35);
+  color: var(--color-deep-ink);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  color: var(--color-storm-slate);
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+img {
+  display: block;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(232, 237, 242, 0.75);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(44, 74, 110, 0.82), rgba(196, 168, 130, 0.72));
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(44, 74, 110, 0.95), rgba(196, 168, 130, 0.92));
+}
+
+*:focus-visible {
+  outline: 2px solid rgba(196, 168, 130, 0.9);
+  outline-offset: 3px;
+}
+
+.tally-embed iframe {
+  width: 100% !important;
+  border: none !important;
+  background: transparent !important;
+}
