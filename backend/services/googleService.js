@@ -2,6 +2,13 @@ const { google } = require('googleapis');
 const { Readable } = require('stream');
 const fs = require('fs');
 const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
+
+// Supabase Storage Client
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 
 // Your service account credentials
 const SERVICE_ACCOUNT = {
@@ -20,6 +27,10 @@ const SERVICE_ACCOUNT = {
 
 const SHEET_ID = '1ECbdT7Ut-ziFX6H4cGrYXSgxa4kk4o-aWOpDgtajeh0';
 const UPLOADS_DIR = path.join(__dirname, '../uploads');
+const PUBLIC_API_ORIGIN =
+  process.env.PUBLIC_API_ORIGIN ||
+  process.env.RENDER_EXTERNAL_URL ||
+  'https://soft-apocalypse-api.onrender.com';
 
 // Ensure uploads directory exists
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -37,22 +48,29 @@ const auth = new google.auth.GoogleAuth({
 const sheets = google.sheets({ version: 'v4', auth });
 
 /**
- * Upload file to local storage
+ * Upload file to Supabase storage
  */
 async function uploadFileLocally(fileBuffer, fileName) {
   try {
-    const filePath = path.join(UPLOADS_DIR, fileName);
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('submissions')
+      .upload(`submissions/${fileName}`, fileBuffer, {
+        contentType: 'application/octet-stream',
+        upsert: false
+      });
     
-    // Save file to disk
-    fs.writeFileSync(filePath, fileBuffer);
+    if (error) throw error;
     
-    // Generate download link
-    const downloadLink = `http://localhost:5000/api/downloads/${fileName}`;
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('submissions')
+      .getPublicUrl(`submissions/${fileName}`);
     
-    console.log(`✅ File saved locally: ${fileName}`);
-    return downloadLink;
+    console.log(`✅ File uploaded to Supabase: ${fileName}`);
+    return publicUrl;
   } catch (error) {
-    console.error('Error saving file locally:', error);
+    console.error('Error uploading to Supabase:', error);
     throw error;
   }
 }
@@ -62,6 +80,11 @@ async function uploadFileLocally(fileBuffer, fileName) {
  */
 async function appendToSheet(submissionData) {
   try {
+    const normalizedFileLink = (submissionData.fileLink || '').replace(
+      /^http:\/\/localhost:5000/,
+      PUBLIC_API_ORIGIN,
+    );
+
     const values = [
       [
         submissionData.name,
@@ -70,7 +93,7 @@ async function appendToSheet(submissionData) {
         submissionData.institution,
         submissionData.genre,
         submissionData.title,
-        submissionData.fileLink || '',
+        normalizedFileLink,
         new Date().toISOString(),
       ],
     ];

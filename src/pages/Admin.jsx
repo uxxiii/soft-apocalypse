@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Search, Download, LogOut, Lock } from 'lucide-react';
 import '../styles/admin.css';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
+
 const AdminDashboard = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [password, setPassword] = useState('');
@@ -12,6 +15,20 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGenre, setFilterGenre] = useState('all');
   const [error, setError] = useState('');
+
+  const normalizeFileLink = (fileLink) => {
+    if (!fileLink) return '';
+
+    if (fileLink.startsWith('http://localhost:5000/api/downloads/')) {
+      return fileLink.replace('http://localhost:5000', API_ORIGIN);
+    }
+
+    if (fileLink.startsWith('/api/downloads/')) {
+      return `${API_ORIGIN}${fileLink}`;
+    }
+
+    return fileLink;
+  };
 
   // Check if already logged in
   useEffect(() => {
@@ -47,7 +64,7 @@ const AdminDashboard = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/login', {
+      const response = await fetch(`${API_BASE_URL}/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
@@ -65,7 +82,7 @@ const AdminDashboard = () => {
         setError(data.error || 'Login failed');
       }
     } catch (err) {
-      setError('Connection error. Make sure backend is running.');
+      setError('Connection error. Unable to reach admin API.');
     } finally {
       setLoading(false);
     }
@@ -75,13 +92,17 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/submissions?token=${authToken}`
+        `${API_BASE_URL}/admin/submissions?token=${authToken}`
       );
 
       const data = await response.json();
 
       if (response.ok) {
-        setSubmissions(data.submissions || []);
+        const normalizedSubmissions = (data.submissions || []).map((submission) => ({
+          ...submission,
+          fileLink: normalizeFileLink(submission.fileLink),
+        }));
+        setSubmissions(normalizedSubmissions);
         setError('');
       } else {
         setError(data.error || 'Failed to fetch submissions');

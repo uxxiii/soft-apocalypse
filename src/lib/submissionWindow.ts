@@ -1,6 +1,6 @@
 export const IST_TIME_ZONE = 'Asia/Kolkata';
-export const SUBMISSION_OPEN_DATE = new Date('2026-04-16T00:00:00+05:30'); // Testing mode - opened early
-export const SUBMISSION_CLOSE_DATE = new Date('2026-05-15T23:59:59+05:30');
+export const SUBMISSION_OPEN_DATE = new Date('2026-04-16T00:00:00+05:30'); // Always open
+export const SUBMISSION_CLOSE_DATE = new Date('2026-05-15T23:59:59+05:30'); // May 15 @ 11:59 PM IST
 
 function normalizeDate(dateInput = new Date()) {
   return dateInput instanceof Date ? dateInput : new Date(dateInput);
