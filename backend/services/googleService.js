@@ -27,6 +27,8 @@ const SERVICE_ACCOUNT = {
 
 const SHEET_ID = '1ECbdT7Ut-ziFX6H4cGrYXSgxa4kk4o-aWOpDgtajeh0';
 const UPLOADS_DIR = path.join(__dirname, '../uploads');
+const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET || 'submissions';
+const SUPABASE_FOLDER = process.env.SUPABASE_FOLDER || 'submissions';
 const PUBLIC_API_ORIGIN =
   process.env.PUBLIC_API_ORIGIN ||
   process.env.RENDER_EXTERNAL_URL ||
@@ -52,22 +54,35 @@ const sheets = google.sheets({ version: 'v4', auth });
  */
 async function uploadFileLocally(fileBuffer, fileName) {
   try {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+      throw new Error('Supabase is not configured. Missing SUPABASE_URL or SUPABASE_KEY.');
+    }
+
+    const objectPath = `${SUPABASE_FOLDER}/${fileName}`;
+
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
-      .from('submissions')
-      .upload(`submissions/${fileName}`, fileBuffer, {
+      .from(SUPABASE_BUCKET)
+      .upload(objectPath, fileBuffer, {
         contentType: 'application/octet-stream',
         upsert: false
       });
     
-    if (error) throw error;
+    if (error) {
+      if (error.message && error.message.toLowerCase().includes('bucket not found')) {
+        throw new Error(
+          `Supabase bucket not found: ${SUPABASE_BUCKET}. Create this bucket in Storage or set SUPABASE_BUCKET correctly in Render.`,
+        );
+      }
+      throw error;
+    }
     
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
-      .from('submissions')
-      .getPublicUrl(`submissions/${fileName}`);
+      .from(SUPABASE_BUCKET)
+      .getPublicUrl(objectPath);
     
-    console.log(`✅ File uploaded to Supabase: ${fileName}`);
+    console.log(`✅ File uploaded to Supabase bucket '${SUPABASE_BUCKET}': ${fileName}`);
     return publicUrl;
   } catch (error) {
     console.error('Error uploading to Supabase:', error);
