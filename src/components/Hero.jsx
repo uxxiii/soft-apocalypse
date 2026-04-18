@@ -158,7 +158,7 @@ export default function Hero() {
                     Editor&apos;s note
                   </p>
 
-                  <h2 className="mt-5 font-heading text-4xl leading-[0.95] text-blue-200">
+                  <h2 className="mt-5 font-heading text-4xl leading-[0.95] text-sky-300">
                     The opening page of a generational document.
                   </h2>
 
