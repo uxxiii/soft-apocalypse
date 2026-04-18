@@ -104,7 +104,7 @@ export default function Submission() {
         <PageHeader
           eyebrow="Submission dossier"
           title="Submission & Guidelines"
-          description="A native, IST-aware submission system with live countdown logic, form validation, and a scripted FAQ widget for entrants."
+          description="Submit your best work across poetry, prose, and flash fiction. Entries open April 18 and close May 15, 2026 (IST)."
           stats={[
             { value: formatIstDate(opensAt, { day: '2-digit', month: 'short' }), label: 'Opens IST' },
             { value: formatIstDate(closesAt, { day: '2-digit', month: 'short' }), label: 'Closes IST' },
@@ -124,11 +124,6 @@ export default function Submission() {
                   Soft Apocalypse 2026 accepts original, unpublished work in poetry, prose,
                   and flash fiction. The window opens at <strong>{opensAtLabel}</strong> and
                   closes at <strong>{closesAtLabel}</strong>.
-                </p>
-                <p>
-                  Both the UI and the validation layer are driven by JavaScript Date using
-                  IST explicitly, so the experience updates automatically as the clock
-                  changes.
                 </p>
               </div>
 

@@ -154,7 +154,7 @@ export default function Hero() {
                     className="h-14 w-auto brightness-0 invert opacity-80"
                   />
 
-                  <p className="mt-8 font-body text-[0.68rem] uppercase tracking-[0.38em] text-white/82">
+                  <p className="mt-8 font-body text-[0.68rem] uppercase tracking-[0.38em] text-blue-300">
                     Editor&apos;s note
                   </p>
 
