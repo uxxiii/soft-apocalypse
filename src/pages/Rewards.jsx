@@ -82,7 +82,6 @@ export default function Rewards() {
         description="Celebrating exceptional talent through our distinguished awards program"
         stats={[
           { value: '3', label: 'Award Categories' },
-          { value: '2200+', label: 'Expected Submissions' },
           { value: 'July 2026', label: 'Winners Announced' },
         ]}
       />
