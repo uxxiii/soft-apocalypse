@@ -3,5 +3,15 @@
   "outputDirectory": "dist",
   "env": {
     "VITE_API_URL": "https://soft-apocalypse-api.onrender.com/api"
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://soft-apocalypse-api.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
