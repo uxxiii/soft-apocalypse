@@ -9,11 +9,5 @@
       "source": "/api/:path*",
       "destination": "https://soft-apocalypse-api.onrender.com/api/:path*"
     }
-  ],
-  "routes": [
-    {
-      "src": "^/(?!api/).*",
-      "destination": "/index.html"
-    }
   ]
 }

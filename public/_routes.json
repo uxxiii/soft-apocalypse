@@ -1,0 +1,17 @@
+{
+  "version": 3,
+  "routes": [
+    {
+      "src": "^/api/(.*)",
+      "dest": "https://soft-apocalypse-api.onrender.com/api/$1"
+    },
+    {
+      "src": "^/(?!_next/|_static/|.*\\.)(.*)$",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}
