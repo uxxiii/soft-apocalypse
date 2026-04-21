@@ -8,6 +8,11 @@
     {
       "source": "/api/:path*",
       "destination": "https://soft-apocalypse-api.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html",
+      "statusCode": 200
     }
   ]
 }
