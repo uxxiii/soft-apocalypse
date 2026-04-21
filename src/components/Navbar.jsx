@@ -65,7 +65,7 @@ export default function Navbar() {
             <div className="relative flex h-16 items-center justify-between px-5 sm:h-[4.65rem] sm:px-6">
               <Link
                 to="/"
-                className="flex shrink-0 items-center gap-3"
+                className="flex shrink-0 items-center gap-2 sm:gap-3"
                 aria-label="Soft Apocalypse - Home"
               >
                 <img
@@ -73,11 +73,11 @@ export default function Navbar() {
                   alt="Soft Apocalypse moth logo"
                   className="h-8 w-auto opacity-85 sm:h-10"
                 />
-                <div className="hidden sm:block">
-                  <span className="block font-heading text-2xl leading-none text-storm-slate">
+                <div>
+                  <span className="block font-heading text-base sm:text-2xl leading-none text-storm-slate">
                     Soft Apocalypse
                   </span>
-                  <span className="mt-1 block font-body text-[0.6rem] uppercase tracking-[0.34em] text-storm-slate/55">
+                  <span className="mt-0.5 block font-body text-[0.5rem] sm:text-[0.6rem] uppercase tracking-[0.26em] sm:tracking-[0.34em] text-storm-slate/55">
                     National anthology 2026
                   </span>
                 </div>
