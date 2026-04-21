@@ -22,7 +22,7 @@ export default function Home() {
     <main className="overflow-hidden">
       <Hero />
 
-      <section className="px-4 pb-16 sm:px-6 lg:px-8" aria-label="Introduction">
+      <section className="px-4 pt-12 pb-16 sm:px-6 sm:pt-16 lg:px-8 lg:pt-20" aria-label="Introduction">
         <div className="mx-auto max-w-6xl">
           <AnimatedSection className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
             <div className="space-y-6">
