@@ -1,6 +1,6 @@
 export const IST_TIME_ZONE = 'Asia/Kolkata';
 export const SUBMISSION_OPEN_DATE = new Date('2026-04-16T00:00:00+05:30'); // Always open
-export const SUBMISSION_CLOSE_DATE = new Date('2026-05-15T23:59:59+05:30'); // May 15 @ 11:59 PM IST
+export const SUBMISSION_CLOSE_DATE = new Date('2026-05-31T23:59:59+05:30'); // May 31 @ 11:59 PM IST
 
 function normalizeDate(dateInput = new Date()) {
   return dateInput instanceof Date ? dateInput : new Date(dateInput);
@@ -87,7 +87,7 @@ export function validateSubmissionWindow(currentDate = new Date()) {
     return {
       ok: false,
       code: 'closed',
-      message: 'Submissions closed on 15 May 2026 at 11:59 PM IST.',
+      message: 'Submissions closed on 31 May 2026 at 11:59 PM IST.',
     };
   }
 

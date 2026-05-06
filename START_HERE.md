@@ -5,7 +5,7 @@
 #### 1. **Production Dates Set** ✅
 - File: `src/lib/submissionWindow.ts`
 - Changed: Submissions open **April 18 @ 6 PM IST** (was testing: April 16 @ 12 AM)
-- Closing: May 15 @ 11:59 PM IST
+- Closing: May 31 @ 11:59 PM IST
 
 #### 2. **Supabase File Storage Integrated** ✅
 - File: `backend/services/googleService.js`

@@ -143,7 +143,7 @@ A: Check `VITE_API_URL` in Vercel. Must be exactly: `https://your-render-url.onr
 A: Check Supabase bucket name is exactly `submissions` and it's set to Public
 
 **Q: "Submissions closed" on April 18?**
-A: Production dates are set. Opening: April 18 @ 6 PM IST, Closing: May 15 @ 11:59 PM IST
+A: Production dates are set. Opening: April 18 @ 6 PM IST, Closing: May 31 @ 11:59 PM IST
 
 **Q: Admin login failing?**
 A: Password is `SoftApocalypse2026Admin` - check ADMIN_PASSWORD in Render exactly matches
