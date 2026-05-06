@@ -91,10 +91,49 @@ async function uploadFileLocally(fileBuffer, fileName) {
 }
 
 /**
+ * Initialize sheet headers if empty
+ */
+async function initializeSheetHeaders() {
+  try {
+    // Check if sheet has any data
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SHEET_ID,
+      range: 'Sheet1!A1:H1',
+    });
+
+    const existingData = response.data.values;
+
+    // If no header row exists, create one
+    if (!existingData || existingData.length === 0) {
+      const headers = [
+        ['Name', 'Email', 'City', 'Institution', 'Genre', 'Title', 'File Link', 'Submission At'],
+      ];
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SHEET_ID,
+        range: 'Sheet1!A1:H1',
+        valueInputOption: 'USER_ENTERED',
+        resource: {
+          values: headers,
+        },
+      });
+
+      console.log('✅ Sheet headers initialized');
+    }
+  } catch (error) {
+    console.error('Error initializing sheet headers:', error);
+    throw error;
+  }
+}
+
+/**
  * Append submission to Google Sheet
  */
 async function appendToSheet(submissionData) {
   try {
+    // Ensure headers are initialized
+    await initializeSheetHeaders();
+
     const normalizedFileLink = (submissionData.fileLink || '').replace(
       /^http:\/\/localhost:5000/,
       PUBLIC_API_ORIGIN,
@@ -115,7 +154,7 @@ async function appendToSheet(submissionData) {
 
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId: SHEET_ID,
-      range: 'Sheet1!A:H',
+      range: 'Sheet1!A2:H',
       valueInputOption: 'USER_ENTERED',
       resource: {
         values: values,

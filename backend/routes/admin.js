@@ -75,7 +75,7 @@ router.get('/submissions', async (req, res) => {
 
     const rows = response.data.values || [];
     
-    // Skip header row and format data
+    // Skip header row (first row) and format data
     const submissions = rows.slice(1).map((row, index) => ({
       id: index + 1,
       name: row[0] || '',
