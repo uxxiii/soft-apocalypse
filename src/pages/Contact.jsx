@@ -16,15 +16,27 @@ const contactCards = [
     icon: Twitter,
   },
   {
-    title: 'Email',
-    value: 'hello@softapocalypse.in',
-    href: 'mailto:hello@softapocalypse.in',
+    title: 'Substack',
+    value: 'Soft Apocalypse Newsletter',
+    href: 'https://substack.com/@softapocalypsein?utm_source=share&utm_medium=android&r=81uw8x',
+    icon: Mail,
+  },
+  {
+    title: 'Admin Email',
+    value: 'admin@softapocalypse.in',
+    href: 'mailto:admin@softapocalypse.in',
+    icon: Mail,
+  },
+  {
+    title: 'Press Email',
+    value: 'press@softapocalypse.in',
+    href: 'mailto:press@softapocalypse.in',
     icon: Mail,
   },
   {
     title: 'Phone',
-    value: '+91 98765 43210',
-    href: 'tel:+919876543210',
+    value: '+91 72578 26788',
+    href: 'tel:+917257826788',
     icon: Phone,
   },
 ];

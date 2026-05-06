@@ -8,6 +8,11 @@ const footerLinks = [
   { to: '/contact', label: 'Contact' },
 ];
 const INSTAGRAM_URL = 'https://instagram.com/softapocalypse.in';
+const SUBSTACK_URL = 'https://substack.com/@softapocalypsein?utm_source=share&utm_medium=android&r=81uw8x';
+const TWITTER_URL = 'https://x.com/thesoftapclypse';
+const ADMIN_EMAIL = 'admin@softapocalypse.in';
+const PRESS_EMAIL = 'press@softapocalypse.in';
+const PHONE_NUMBER = '+91 72578 26788';
 
 export default function Footer() {
   return (
@@ -76,7 +81,7 @@ export default function Footer() {
                 <Instagram size={18} />
               </a>
               <a
-                href="https://x.com/thesoftapclypse"
+                href={TWITTER_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Follow on X"
@@ -85,7 +90,16 @@ export default function Footer() {
                 <Twitter size={18} />
               </a>
               <a
-                href="mailto:hello@softapocalypse.in"
+                href={SUBSTACK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Subscribe on Substack"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-white/6 transition-all duration-300 hover:border-warm-sand/40 hover:text-warm-sand"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18V6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z"/><path d="M3 9h18M12 18v-6"/></svg>
+              </a>
+              <a
+                href={`mailto:${ADMIN_EMAIL}`}
                 aria-label="Send email"
                 className="flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-white/6 transition-all duration-300 hover:border-warm-sand/40 hover:text-warm-sand"
               >
