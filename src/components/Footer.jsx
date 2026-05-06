@@ -121,10 +121,10 @@ export default function Footer() {
             </p>
 
             <a
-              href="mailto:hello@softapocalypse.in"
+              href={`mailto:${ADMIN_EMAIL}`}
               className="mt-6 inline-block font-body text-base text-rain-mist/72 transition-colors duration-300 hover:text-warm-sand"
             >
-              hello@softapocalypse.in
+              {ADMIN_EMAIL}
             </a>
           </div>
         </div>
