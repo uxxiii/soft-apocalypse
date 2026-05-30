@@ -24,11 +24,11 @@ router.post('/submit', upload.single('file'), async (req, res) => {
     });
     console.log('🔍 DEBUG - req.file:', req.file ? { originalname: req.file.originalname, size: req.file.size } : 'NO FILE');
     
-    const { name, email, phone, city, institution, genre, title } = req.body;
+    const { name, email, city, institution, genre, title } = req.body;
 
-    // Validate required fields
-    if (!name || !email || !phone || !city || !institution || !genre || !title) {
-      console.log('❌ VALIDATION FAILED - Missing fields:', { name: !!name, email: !!email, phone: !!phone, city: !!city, institution: !!institution, genre: !!genre, title: !!title });
+    // Validate required fields (phone removed)
+    if (!name || !email || !city || !institution || !genre || !title) {
+      console.log('❌ VALIDATION FAILED - Missing fields:', { name: !!name, email: !!email, city: !!city, institution: !!institution, genre: !!genre, title: !!title });
       return res.status(400).json({
         error: 'Missing required fields',
       });
@@ -50,7 +50,7 @@ router.post('/submit', upload.single('file'), async (req, res) => {
       {
         name,
         email,
-        phone,
+        // phone intentionally omitted — not collecting anymore
         city,
         institution,
         genre,

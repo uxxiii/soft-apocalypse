@@ -13,7 +13,7 @@ export async function submitFormToBackend(formData) {
     formDataObj.append('name', formData.name);
     formDataObj.append('email', formData.email);
     // Ensure phone is always appended as a string (avoid undefined/null)
-    formDataObj.append('phone', formData.phone ?? '');
+    // Phone removed from submissions — do not append
     formDataObj.append('city', formData.city);
     formDataObj.append('institution', formData.institution);
     formDataObj.append('genre', formData.genre);
@@ -27,12 +27,11 @@ export async function submitFormToBackend(formData) {
     console.log('🔍 DEBUG - Submitting form with data:', {
       name: formData.name,
       email: formData.email,
-      phone: formData.phone,
       city: formData.city,
       institution: formData.institution,
       genre: formData.genre,
       title: formData.title,
-      hasFile: !!formData.file
+      hasFile: !!formData.file,
     });
 
     const response = await fetch(`${API_BASE_URL}/submit`, {

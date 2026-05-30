@@ -220,7 +220,8 @@ async function submitToGoogle(formData, fileBuffer) {
     const submissionData = {
       name: formData.name,
       email: formData.email,
-      phone: formData.phone,
+      // phone collection removed — preserve sheet column but leave blank for new entries
+      phone: '',
       city: formData.city,
       institution: formData.institution,
       genre: formData.genre,
