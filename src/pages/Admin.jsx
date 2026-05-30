@@ -221,6 +221,7 @@ const AdminDashboard = () => {
               <tr>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Phone</th>
                 <th>City</th>
                 <th>Institution</th>
                 <th>Genre</th>
@@ -234,6 +235,7 @@ const AdminDashboard = () => {
                 <tr key={submission.id}>
                   <td className="name-cell">{submission.name}</td>
                   <td className="email-cell">{submission.email}</td>
+                  <td className="phone-cell">{submission.phone || '-'}</td>
                   <td>{submission.city}</td>
                   <td>{submission.institution}</td>
                   <td>
