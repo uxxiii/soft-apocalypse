@@ -22,6 +22,18 @@ export async function submitFormToBackend(formData) {
       formDataObj.append('file', formData.file);
     }
 
+    // DEBUG: Log what we're sending
+    console.log('🔍 DEBUG - Submitting form with data:', {
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      city: formData.city,
+      institution: formData.institution,
+      genre: formData.genre,
+      title: formData.title,
+      hasFile: !!formData.file
+    });
+
     const response = await fetch(`${API_BASE_URL}/submit`, {
       method: 'POST',
       body: formDataObj,
