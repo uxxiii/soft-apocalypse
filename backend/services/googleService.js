@@ -173,6 +173,17 @@ async function appendToSheet(submissionData) {
       ],
     ];
 
+    console.log('🔍 DEBUG - About to append to sheet with data:', JSON.stringify({
+      name: submissionData.name,
+      email: submissionData.email,
+      phone: submissionData.phone,
+      city: submissionData.city,
+      institution: submissionData.institution,
+      genre: submissionData.genre,
+      title: submissionData.title,
+      fileLink: normalizedFileLink,
+    }, null, 2));
+
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId: SHEET_ID,
       range: 'Sheet1!A2:I',

@@ -16,10 +16,15 @@ const upload = multer({
  */
 router.post('/submit', upload.single('file'), async (req, res) => {
   try {
+    // DEBUG: Log incoming data
+    console.log('🔍 DEBUG - req.body:', JSON.stringify(req.body, null, 2));
+    console.log('🔍 DEBUG - req.file:', req.file ? { originalname: req.file.originalname, size: req.file.size } : 'NO FILE');
+    
     const { name, email, phone, city, institution, genre, title } = req.body;
 
     // Validate required fields
     if (!name || !email || !phone || !city || !institution || !genre || !title) {
+      console.log('❌ VALIDATION FAILED - Missing fields:', { name: !!name, email: !!email, phone: !!phone, city: !!city, institution: !!institution, genre: !!genre, title: !!title });
       return res.status(400).json({
         error: 'Missing required fields',
       });
