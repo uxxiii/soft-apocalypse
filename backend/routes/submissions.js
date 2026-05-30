@@ -16,10 +16,10 @@ const upload = multer({
  */
 router.post('/submit', upload.single('file'), async (req, res) => {
   try {
-    const { name, email, city, institution, genre, title } = req.body;
+    const { name, email, phone, city, institution, genre, title } = req.body;
 
     // Validate required fields
-    if (!name || !email || !city || !institution || !genre || !title) {
+    if (!name || !email || !phone || !city || !institution || !genre || !title) {
       return res.status(400).json({
         error: 'Missing required fields',
       });
@@ -41,6 +41,7 @@ router.post('/submit', upload.single('file'), async (req, res) => {
       {
         name,
         email,
+        phone,
         city,
         institution,
         genre,

@@ -98,7 +98,7 @@ async function initializeSheetHeaders() {
     // Check if sheet has any data
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
-      range: 'Sheet1!A1:H1',
+      range: 'Sheet1!A1:I1',
     });
 
     const existingData = response.data.values;
@@ -106,12 +106,12 @@ async function initializeSheetHeaders() {
     // If no header row exists, create one
     if (!existingData || existingData.length === 0) {
       const headers = [
-        ['Name', 'Email', 'City', 'Institution', 'Genre', 'Title', 'File Link', 'Submission At'],
+        ['Name', 'Email', 'Phone', 'City', 'Institution', 'Genre', 'Title', 'File Link', 'Submission At'],
       ];
 
       await sheets.spreadsheets.values.update({
         spreadsheetId: SHEET_ID,
-        range: 'Sheet1!A1:H1',
+        range: 'Sheet1!A1:I1',
         valueInputOption: 'USER_ENTERED',
         resource: {
           values: headers,
@@ -143,6 +143,7 @@ async function appendToSheet(submissionData) {
       [
         submissionData.name,
         submissionData.email,
+        submissionData.phone,
         submissionData.city,
         submissionData.institution,
         submissionData.genre,
@@ -154,7 +155,7 @@ async function appendToSheet(submissionData) {
 
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId: SHEET_ID,
-      range: 'Sheet1!A2:H',
+      range: 'Sheet1!A2:I',
       valueInputOption: 'USER_ENTERED',
       resource: {
         values: values,
@@ -188,6 +189,7 @@ async function submitToGoogle(formData, fileBuffer) {
     const submissionData = {
       name: formData.name,
       email: formData.email,
+      phone: formData.phone,
       city: formData.city,
       institution: formData.institution,
       genre: formData.genre,

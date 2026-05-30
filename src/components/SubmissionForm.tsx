@@ -19,6 +19,7 @@ const genres = ['Poetry', 'Prose', 'Flash Fiction'];
 const initialFormValues = {
   name: '',
   email: '',
+  phone: '',
   city: '',
   institution: '',
   genre: '',
@@ -63,6 +64,12 @@ function getFormErrors(formValues) {
     errors.email = 'Email is required.';
   } else if (!isValidEmail(formValues.email.trim())) {
     errors.email = 'Enter a valid email address.';
+  }
+
+  if (!formValues.phone.trim()) {
+    errors.phone = 'Phone number is required.';
+  } else if (!/^[\d\s\-\+\(\)]{10,}$/.test(formValues.phone.replace(/\s/g, ''))) {
+    errors.phone = 'Enter a valid phone number.';
   }
 
   if (!formValues.city.trim()) {
@@ -259,6 +266,7 @@ export default function SubmissionForm({
       await onSubmitRequest({
         name: formValues.name.trim(),
         email: formValues.email.trim(),
+        phone: formValues.phone.trim(),
         city: formValues.city.trim(),
         institution: formValues.institution.trim(),
         genre: formValues.genre,
@@ -346,6 +354,19 @@ export default function SubmissionForm({
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
+            <InputField
+              id="submission-phone"
+              name="phone"
+              label="Phone Number"
+              required
+              type="tel"
+              value={formValues.phone}
+              onChange={handleInputChange}
+              onBlur={() => markTouched('phone')}
+              placeholder="+1 (555) 123-4567"
+              error={getVisibleError('phone')}
+            />
+
             <InputField
               id="submission-city"
               name="city"
@@ -543,7 +564,7 @@ export default function SubmissionForm({
           <div className="flex flex-col gap-4 border-t border-storm-slate/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-body text-sm font-semibold text-deep-ink">
-                Required: name, email, city, genre, age verification, and file upload.
+                Required: name, email, phone, city, genre, age verification, and file upload.
               </p>
               <p className="mt-1 font-body text-sm leading-6 text-deep-ink/62">
                 {submitDisabledReason

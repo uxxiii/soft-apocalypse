@@ -12,6 +12,7 @@ export async function submitFormToBackend(formData) {
     const formDataObj = new FormData();
     formDataObj.append('name', formData.name);
     formDataObj.append('email', formData.email);
+    formDataObj.append('phone', formData.phone);
     formDataObj.append('city', formData.city);
     formDataObj.append('institution', formData.institution);
     formDataObj.append('genre', formData.genre);
