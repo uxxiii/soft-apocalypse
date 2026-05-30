@@ -51,7 +51,8 @@ const AdminDashboard = () => {
     if (searchTerm) {
       filtered = filtered.filter(sub =>
         sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sub.email.toLowerCase().includes(searchTerm.toLowerCase())
+        sub.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (sub.phone && sub.phone.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 

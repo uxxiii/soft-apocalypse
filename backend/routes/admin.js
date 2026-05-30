@@ -70,7 +70,7 @@ router.get('/submissions', async (req, res) => {
     // Fetch data from Google Sheet
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
-      range: 'Sheet1!A:H',
+      range: 'Sheet1!A:I',
     });
 
     const rows = response.data.values || [];
@@ -80,12 +80,13 @@ router.get('/submissions', async (req, res) => {
       id: index + 1,
       name: row[0] || '',
       email: row[1] || '',
-      city: row[2] || '',
-      institution: row[3] || '',
-      genre: row[4] || '',
-      title: row[5] || '',
-      fileLink: row[6] || '',
-      submittedAt: row[7] || '',
+      phone: row[2] || '',
+      city: row[3] || '',
+      institution: row[4] || '',
+      genre: row[5] || '',
+      title: row[6] || '',
+      fileLink: row[7] || '',
+      submittedAt: row[8] || '',
     }));
 
     res.json({ 
