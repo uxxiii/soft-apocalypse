@@ -91,23 +91,22 @@ async function uploadFileLocally(fileBuffer, fileName) {
 }
 
 /**
- * Initialize sheet headers if empty
+ * Initialize sheet headers if empty or update if old format
  */
 async function initializeSheetHeaders() {
   try {
-    // Check if sheet has any data
+    // Check current headers
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
       range: 'Sheet1!A1:I1',
     });
 
     const existingData = response.data.values;
+    const correctHeaders = ['Name', 'Email', 'Phone', 'City', 'Institution', 'Genre', 'Title', 'File Link', 'Submission At'];
 
     // If no header row exists, create one
     if (!existingData || existingData.length === 0) {
-      const headers = [
-        ['Name', 'Email', 'Phone', 'City', 'Institution', 'Genre', 'Title', 'File Link', 'Submission At'],
-      ];
+      const headers = [correctHeaders];
 
       await sheets.spreadsheets.values.update({
         spreadsheetId: SHEET_ID,
@@ -119,7 +118,28 @@ async function initializeSheetHeaders() {
       });
 
       console.log('✅ Sheet headers initialized');
+      return;
     }
+
+    // Check if headers are in old format (without Phone column)
+    if (existingData[0].length < 9 || existingData[0][2] !== 'Phone') {
+      // Old format detected, update headers
+      const headers = [correctHeaders];
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SHEET_ID,
+        range: 'Sheet1!A1:I1',
+        valueInputOption: 'USER_ENTERED',
+        resource: {
+          values: headers,
+        },
+      });
+
+      console.log('✅ Sheet headers updated to include Phone column');
+      return;
+    }
+
+    console.log('✅ Sheet headers already correct');
   } catch (error) {
     console.error('Error initializing sheet headers:', error);
     throw error;
