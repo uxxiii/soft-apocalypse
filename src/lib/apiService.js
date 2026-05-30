@@ -12,7 +12,8 @@ export async function submitFormToBackend(formData) {
     const formDataObj = new FormData();
     formDataObj.append('name', formData.name);
     formDataObj.append('email', formData.email);
-    formDataObj.append('phone', formData.phone);
+    // Ensure phone is always appended as a string (avoid undefined/null)
+    formDataObj.append('phone', formData.phone ?? '');
     formDataObj.append('city', formData.city);
     formDataObj.append('institution', formData.institution);
     formDataObj.append('genre', formData.genre);
@@ -45,10 +46,13 @@ export async function submitFormToBackend(formData) {
     }
 
     const data = await response.json();
+    // DEBUG: log server response (including echoed receivedBody when enabled)
+    console.log('🔍 DEBUG - Server response:', data);
     return {
       ok: true,
       message: data.message,
       fileLink: data.fileLink,
+      receivedBody: data.receivedBody ?? null,
     };
   } catch (error) {
     console.error('Error submitting to backend:', error);

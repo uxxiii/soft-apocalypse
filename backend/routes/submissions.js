@@ -16,8 +16,12 @@ const upload = multer({
  */
 router.post('/submit', upload.single('file'), async (req, res) => {
   try {
-    // DEBUG: Log incoming data
-    console.log('🔍 DEBUG - req.body:', JSON.stringify(req.body, null, 2));
+    // DEBUG: Log incoming data with types to help trace missing fields
+    console.log('🔍 DEBUG - req.headers.content-type:', req.headers['content-type']);
+    console.log('🔍 DEBUG - req.body keys:', Object.keys(req.body));
+    Object.entries(req.body).forEach(([k, v]) => {
+      console.log(`🔍 DEBUG - req.body[${k}] (type=${typeof v}):`, v);
+    });
     console.log('🔍 DEBUG - req.file:', req.file ? { originalname: req.file.originalname, size: req.file.size } : 'NO FILE');
     
     const { name, email, phone, city, institution, genre, title } = req.body;
@@ -64,10 +68,12 @@ router.post('/submit', upload.single('file'), async (req, res) => {
       console.warn('Email not sent, but submission successful:', emailError.message);
     }
 
+    // Return received body for debugging (temporary)
     res.json({
       ok: true,
       message: 'Thank you for submitting! We\'ve received your entry and will notify you soon.',
       fileLink: result.fileLink,
+      receivedBody: req.body,
     });
   } catch (error) {
     console.error('Error in /api/submit:', error);
