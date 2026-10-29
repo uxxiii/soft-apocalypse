@@ -69,7 +69,7 @@ const recognitionBenefits = [
   },
   {
     title: 'Author\'s Edition',
-    description: 'A complimentary, premium copy of the Soft Apocalypse 2026 anthology.',
+    description: 'A complimentary, premium copy of the Soft Apocalypse India anthology.',
   },
 ];
 
@@ -82,7 +82,7 @@ export default function Rewards() {
         description="Celebrating exceptional talent through our distinguished awards program"
         stats={[
           { value: '3', label: 'Award Categories' },
-          { value: 'July 2026', label: 'Winners Announced' },
+          { value: 'Coming soon', label: 'Winner Announcement' },
         ]}
       />
 
@@ -104,7 +104,7 @@ export default function Rewards() {
               </h2>
               <p className="font-body text-lg leading-9 text-deep-ink/72">
                 To uphold the highest standards of contemporary literature and provide genuine
-                institutional credit to our contributors, Soft Apocalypse 2026 has established a
+                institutional credit to our contributors, Soft Apocalypse India has established a
                 formal awards structure. These accolades recognize exceptional talent across three
                 distinct categories, with winners selected by our distinguished panel of patrons
                 and judges. These are not participation honours. They are institutional marks, the kind that follow a writer's name into every room they enter after this.

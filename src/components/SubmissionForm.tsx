@@ -1,29 +1,42 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertCircle,
   CheckCircle2,
   FileText,
-  ShieldCheck,
-  Trash2,
-  Upload,
+  Sparkles,
+  Info,
+  Check,
 } from 'lucide-react';
-import { validateSubmissionWindow } from '../lib/submissionWindow';
 import { submitFormToBackend } from '../lib/apiService';
 
-const allowedExtensions = ['.pdf', '.docx', '.txt'];
-const maxFileSizeInBytes = 10 * 1024 * 1024;
-
-const genres = ['Poetry', 'Prose', 'Flash Fiction'];
+const genres = [
+  {
+    name: 'Poetry',
+    limits: '40–50 lines',
+    description: 'One original poem. Minimum 40 lines, maximum 50 lines.',
+    type: 'lines',
+    min: 40,
+    max: 50,
+  },
+  {
+    name: 'Prose',
+    limits: '600–700 words',
+    description: 'One original piece of short fiction or creative non-fiction. 600–700 words.',
+    type: 'words',
+    min: 600,
+    max: 700,
+  },
+];
 
 const initialFormValues = {
   name: '',
   email: '',
   city: '',
   institution: '',
-  genre: '',
+  genre: 'Poetry',
   title: '',
-  file: null,
+  content: '',
   ageVerified: false,
 };
 
@@ -31,630 +44,460 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function getFileExtension(fileName) {
-  const lastDotIndex = fileName.lastIndexOf('.');
-  return lastDotIndex >= 0 ? fileName.slice(lastDotIndex).toLowerCase() : '';
+function countWords(text) {
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-function validateFile(file) {
-  if (!file) {
-    return '';
-  }
-
-  if (!allowedExtensions.includes(getFileExtension(file.name))) {
-    return 'Upload a PDF, DOCX, or TXT file.';
-  }
-
-  if (file.size > maxFileSizeInBytes) {
-    return 'File size must be 10MB or less.';
-  }
-
-  return '';
+function countLines(text) {
+  if (!text) return 0;
+  return text.split('\n').filter((l) => l.trim().length > 0).length;
 }
 
-function getFormErrors(formValues) {
-  const errors = {};
-
-  if (!formValues.name.trim()) {
-    errors.name = 'Name is required.';
-  }
-
-  if (!formValues.email.trim()) {
-    errors.email = 'Email is required.';
-  } else if (!isValidEmail(formValues.email.trim())) {
-    errors.email = 'Enter a valid email address.';
-  }
-
-  // Phone collection removed — no validation
-
-  if (!formValues.city.trim()) {
-    errors.city = 'City is required.';
-  }
-
-  if (!formValues.institution.trim()) {
-    errors.institution = 'Institution is required.';
-  }
-
-  if (!formValues.genre) {
-    errors.genre = 'Please select a genre.';
-  }
-
-  if (!formValues.title.trim()) {
-    errors.title = 'Title of work is required.';
-  }
-
-  if (!formValues.ageVerified) {
-    errors.ageVerified = 'You must confirm you are under 25.';
-  }
-
-  if (!formValues.file) {
-    errors.file = 'File upload is required.';
-  } else {
-    const fileError = validateFile(formValues.file);
-    if (fileError) {
-      errors.file = fileError;
-    }
-  }
-
-  return errors;
-}
-
-async function sendConfirmationEmail(email, name) {
-  try {
-    // Try to send via backend - remove or replace with your actual API endpoint
-    await fetch('/api/send-confirmation-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name }),
-    }).catch(() => {
-      // Silent fail for demo - email service optional
-      console.log('Email service not available in demo mode');
-    });
-  } catch (error) {
-    console.log('Email not sent, but submission successful');
-  }
-}
-
-async function defaultSubmitRequest(payload) {
-  // Submit to backend API which handles Google Drive + Sheets
-  try {
-    const result = await submitFormToBackend(payload);
-    return result;
-  } catch (error) {
-    console.error('Error submitting form:', error);
-    throw new Error(error.message || 'Failed to submit. Please try again.');
-  }
-}
-
-function FieldError({ message }) {
-  if (!message) {
-    return null;
-  }
-
-  return (
-    <p className="mt-2 flex items-center gap-2 font-body text-sm text-rose-600">
-      <AlertCircle size={16} />
-      {message}
-    </p>
-  );
-}
-
-function InputField({
-  id,
-  name,
-  label,
-  required = false,
-  value,
-  onChange,
-  onBlur,
-  type = 'text',
-  placeholder,
-  error,
-}) {
-  return (
-    <label htmlFor={id} className="block">
-      <span className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-storm-slate/58">
-        {label}
-        {required ? ' *' : ''}
-      </span>
-      <input
-        id={id}
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        placeholder={placeholder}
-        className={`mt-3 w-full rounded-[1.15rem] border bg-white/90 px-4 py-3.5 font-body text-base text-deep-ink shadow-[0_12px_28px_-24px_rgba(23,34,52,0.72)] transition-colors duration-200 placeholder:text-deep-ink/34 ${
-          error
-            ? 'border-rose-300 focus:border-rose-400'
-            : 'border-storm-slate/12 focus:border-warm-sand'
-        }`}
-      />
-      <FieldError message={error} />
-    </label>
-  );
-}
-
-export default function SubmissionForm({
-  className = '',
-  onSubmitRequest = defaultSubmitRequest,
-  opensAtLabel,
-  closesAtLabel,
-  status = 'open',
-}) {
+export default function SubmissionForm() {
   const [formValues, setFormValues] = useState(initialFormValues);
-  const [touchedFields, setTouchedFields] = useState({});
-  const [submitError, setSubmitError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+  const [touched, setTouched] = useState({});
+  const [status, setStatus] = useState('idle'); // idle | submitting | success | error
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successData, setSuccessData] = useState(null);
 
-  const formErrors = getFormErrors(formValues);
-  const isFormValid = Object.keys(formErrors).length === 0;
-  const isSubmissionOpen = status === 'open' || true; // Allow for testing
-  const submitDisabledReason =
-    status === 'pre' ? 'Not open yet' : status === 'closed' ? 'Closed' : '';
-  const isSubmitDisabled = !isFormValid || isSubmitting;
+  const selectedGenreConfig = useMemo(() => {
+    return genres.find((g) => g.name === formValues.genre) || genres[0];
+  }, [formValues.genre]);
 
-  function markTouched(fieldName) {
-    setTouchedFields((current) => ({
-      ...current,
-      [fieldName]: true,
-    }));
-  }
+  const wordCount = useMemo(() => countWords(formValues.content), [formValues.content]);
+  const lineCount = useMemo(() => countLines(formValues.content), [formValues.content]);
 
-  function updateField(fieldName, nextValue) {
-    setFormValues((current) => ({
-      ...current,
-      [fieldName]: nextValue,
-    }));
-    setSubmitError('');
-    setSuccessMessage('');
-  }
-
-  function getVisibleError(fieldName) {
-    if (!touchedFields[fieldName] && !hasAttemptedSubmit) {
-      return '';
+  const isContentValid = useMemo(() => {
+    if (!formValues.content.trim()) return false;
+    if (selectedGenreConfig.type === 'lines') {
+      return lineCount >= selectedGenreConfig.min && lineCount <= selectedGenreConfig.max;
     }
+    return wordCount >= selectedGenreConfig.min && wordCount <= selectedGenreConfig.max;
+  }, [formValues.content, selectedGenreConfig, lineCount, wordCount]);
 
-    return formErrors[fieldName] ?? '';
-  }
+  const handleChange = (field, value) => {
+    setFormValues((prev) => ({ ...prev, [field]: value }));
+  };
 
-  function handleInputChange(event) {
-    const { name, value } = event.target;
-    updateField(name, value);
-  }
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
 
-  function handleFileChange(event) {
-    const nextFile = event.target.files?.[0] ?? null;
-    markTouched('file');
-    updateField('file', nextFile);
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setTouched({
+      name: true,
+      email: true,
+      city: true,
+      institution: true,
+      title: true,
+      content: true,
+      ageVerified: true,
+    });
 
-  function removeSelectedFile() {
-    markTouched('file');
-    updateField('file', null);
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    setHasAttemptedSubmit(true);
-    setSubmitError('');
-    setSuccessMessage('');
-
-    // Validate submission window
-    const availability = validateSubmissionWindow(new Date());
-    if (!availability.ok) {
-      setSubmitError(availability.message);
+    if (!formValues.name.trim()) {
+      setErrorMessage('Please enter your full name.');
+      return;
+    }
+    if (!formValues.email.trim() || !isValidEmail(formValues.email.trim())) {
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+    if (!formValues.city.trim()) {
+      setErrorMessage('Please enter your city or town.');
+      return;
+    }
+    if (!formValues.institution.trim()) {
+      setErrorMessage('Please enter your institution or affiliation (or "Independent").');
+      return;
+    }
+    if (!formValues.title.trim()) {
+      setErrorMessage('Please enter the title of your work.');
+      return;
+    }
+    if (!formValues.ageVerified) {
+      setErrorMessage('You must confirm that you are aged 25 or under.');
       return;
     }
 
-    if (!isFormValid) {
-      setSubmitError('Please correct the highlighted fields before submitting.');
+    if (!formValues.content.trim()) {
+      setErrorMessage('Please paste your article or poem into the content area.');
       return;
     }
 
-    setIsSubmitting(true);
+    if (selectedGenreConfig.type === 'lines') {
+      if (lineCount < selectedGenreConfig.min || lineCount > selectedGenreConfig.max) {
+        setErrorMessage(
+          `Poetry entries must be between 40 and 50 lines. You currently have ${lineCount} non-empty lines.`
+        );
+        return;
+      }
+    } else {
+      if (wordCount < selectedGenreConfig.min || wordCount > selectedGenreConfig.max) {
+        setErrorMessage(
+          `Prose entries must be between 600 and 700 words. You currently have ${wordCount} words.`
+        );
+        return;
+      }
+    }
+
+    setStatus('submitting');
+    setErrorMessage('');
 
     try {
-      await onSubmitRequest({
-        name: formValues.name.trim(),
-        email: formValues.email.trim(),
-        city: formValues.city.trim(),
-        institution: formValues.institution.trim(),
-        genre: formValues.genre,
-        title: formValues.title.trim(),
-        file: formValues.file,
-        submittedAt: new Date().toISOString(),
-      });
-
-      setFormValues(initialFormValues);
-      setTouchedFields({});
-      setHasAttemptedSubmit(false);
-      setSuccessMessage(
-        'Thank you for submitting! We\'ve received your entry and will notify you soon.',
-      );
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : 'Something went wrong while sending the submission.',
-      );
-    } finally {
-      setIsSubmitting(false);
+      const response = await submitFormToBackend(formValues);
+      setStatus('success');
+      setSuccessData(response);
+    } catch (err) {
+      console.error('Submission failed:', err);
+      setStatus('error');
+      setErrorMessage(err.message || 'Failed to submit. Please verify details and try again.');
     }
+  };
+
+  if (status === 'success') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="mx-auto max-w-3xl rounded-[2.5rem] border border-white/70 bg-white/75 p-10 sm:p-14 text-center shadow-[0_30px_100px_-50px_rgba(23,34,52,0.8)] backdrop-blur-xl"
+      >
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+          <CheckCircle2 size={44} />
+        </div>
+
+        <p className="mt-6 font-body text-xs font-semibold uppercase tracking-[0.32em] text-storm-slate/60">
+          Entry Confirmed
+        </p>
+
+        <h2 className="mt-3 font-heading text-4xl sm:text-5xl text-storm-slate leading-tight">
+          Thank you, {formValues.name}
+        </h2>
+
+        <p className="mt-4 font-body text-base sm:text-lg leading-8 text-deep-ink/75 max-w-xl mx-auto">
+          Your entry <strong>"{formValues.title}"</strong> ({formValues.genre}) has been received and stored in the Soft Apocalypse India editorial register.
+        </p>
+
+        <div className="mt-8 rounded-2xl border border-storm-slate/10 bg-rain-mist/60 p-6 text-left max-w-lg mx-auto">
+          <p className="font-body text-xs uppercase tracking-wider text-storm-slate/70 font-semibold mb-2">
+            Next steps:
+          </p>
+          <ul className="space-y-2 font-body text-sm text-deep-ink/70">
+            <li>• A confirmation email has been dispatched to <strong>{formValues.email}</strong>.</li>
+            <li>• Submissions are read completely blind by the editorial board.</li>
+            <li>• You will receive an official notification once your piece has been evaluated.</li>
+          </ul>
+        </div>
+
+        <div className="mt-10">
+          <button
+            onClick={() => {
+              setFormValues(initialFormValues);
+              setStatus('idle');
+              setSuccessData(null);
+            }}
+            className="inline-flex items-center gap-2 rounded-full border border-storm-slate/20 bg-storm-slate px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.24em] text-white transition-all duration-300 hover:bg-deep-ink hover:shadow-lg"
+          >
+            Submit Another Piece
+          </button>
+        </div>
+      </motion.div>
+    );
   }
 
   return (
-    <div className={`grid gap-6 lg:grid-cols-[1.12fr_0.88fr] ${className}`}>
-      <motion.div
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        className="rounded-[2rem] border border-white/72 bg-white/72 p-6 shadow-[0_34px_100px_-74px_rgba(23,34,52,0.92)] backdrop-blur-xl sm:p-8"
-      >
-        <div className="flex flex-col gap-4 border-b border-storm-slate/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-2xl">
-            <p className="font-body text-[0.68rem] uppercase tracking-[0.38em] text-storm-slate/58">
-              Submission form
-            </p>
-            <h2 className="mt-4 font-heading text-4xl leading-[0.94] text-storm-slate sm:text-5xl">
-              Send the piece that feels most urgent to you.
+    <div className="mx-auto max-w-4xl">
+      <form onSubmit={handleSubmit} className="space-y-10">
+        {/* Author Information Card */}
+        <div className="rounded-[2.5rem] border border-white/70 bg-white/65 p-8 sm:p-12 shadow-[0_26px_90px_-60px_rgba(23,34,52,0.7)] backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-storm-slate text-xs font-bold text-white">
+              1
+            </span>
+            <h2 className="font-heading text-2xl sm:text-3xl text-storm-slate">
+              Author Details
             </h2>
-            <p className="mt-4 font-body text-sm leading-7 text-deep-ink/72 sm:text-base">
-              All validation happens before submit, and the submission window is checked again
-              right before the form is accepted.
-            </p>
           </div>
+          <p className="mt-2 text-sm text-deep-ink/65 font-body">
+            All identifying information is kept separate from the reading committee to guarantee blind evaluation.
+          </p>
 
-          <div
-            className={`rounded-full border px-4 py-2 font-body text-xs font-semibold uppercase tracking-[0.24em] ${
-              isSubmissionOpen
-                ? 'border-emerald-500/20 bg-emerald-500/8 text-emerald-700'
-                : 'border-storm-slate/12 bg-rain-mist/80 text-storm-slate'
-            }`}
-          >
-            {isSubmissionOpen ? 'Window live' : submitDisabledReason}
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            <div>
+              <label htmlFor="name" className="block font-body text-xs font-semibold uppercase tracking-wider text-storm-slate">
+                Full Name *
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={formValues.name}
+                onChange={(e) => handleChange('name', e.target.value)}
+                onBlur={() => handleBlur('name')}
+                placeholder="e.g. Arundhati Roy"
+                className="mt-2 w-full rounded-2xl border border-storm-slate/15 bg-white/80 px-4 py-3.5 font-body text-sm text-deep-ink transition-all placeholder:text-deep-ink/35 focus:border-storm-slate focus:bg-white focus:outline-none focus:ring-2 focus:ring-storm-slate/10"
+              />
+              {touched.name && !formValues.name.trim() && (
+                <p className="mt-1.5 flex items-center gap-1.5 text-xs text-rose-600 font-body">
+                  <AlertCircle size={14} /> Full name is required
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block font-body text-xs font-semibold uppercase tracking-wider text-storm-slate">
+                Email Address *
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={formValues.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                onBlur={() => handleBlur('email')}
+                placeholder="you@domain.com"
+                className="mt-2 w-full rounded-2xl border border-storm-slate/15 bg-white/80 px-4 py-3.5 font-body text-sm text-deep-ink transition-all placeholder:text-deep-ink/35 focus:border-storm-slate focus:bg-white focus:outline-none focus:ring-2 focus:ring-storm-slate/10"
+              />
+              {touched.email && (!formValues.email.trim() || !isValidEmail(formValues.email)) && (
+                <p className="mt-1.5 flex items-center gap-1.5 text-xs text-rose-600 font-body">
+                  <AlertCircle size={14} /> A valid email address is required
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="city" className="block font-body text-xs font-semibold uppercase tracking-wider text-storm-slate">
+                City / Town *
+              </label>
+              <input
+                id="city"
+                type="text"
+                value={formValues.city}
+                onChange={(e) => handleChange('city', e.target.value)}
+                onBlur={() => handleBlur('city')}
+                placeholder="e.g. Pune, Dimapur, Kochi"
+                className="mt-2 w-full rounded-2xl border border-storm-slate/15 bg-white/80 px-4 py-3.5 font-body text-sm text-deep-ink transition-all placeholder:text-deep-ink/35 focus:border-storm-slate focus:bg-white focus:outline-none focus:ring-2 focus:ring-storm-slate/10"
+              />
+              {touched.city && !formValues.city.trim() && (
+                <p className="mt-1.5 flex items-center gap-1.5 text-xs text-rose-600 font-body">
+                  <AlertCircle size={14} /> City is required
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="institution" className="block font-body text-xs font-semibold uppercase tracking-wider text-storm-slate">
+                Institution or Affiliation *
+              </label>
+              <input
+                id="institution"
+                type="text"
+                value={formValues.institution}
+                onChange={(e) => handleChange('institution', e.target.value)}
+                onBlur={() => handleBlur('institution')}
+                placeholder="College, University, or 'Independent'"
+                className="mt-2 w-full rounded-2xl border border-storm-slate/15 bg-white/80 px-4 py-3.5 font-body text-sm text-deep-ink transition-all placeholder:text-deep-ink/35 focus:border-storm-slate focus:bg-white focus:outline-none focus:ring-2 focus:ring-storm-slate/10"
+              />
+              {touched.institution && !formValues.institution.trim() && (
+                <p className="mt-1.5 flex items-center gap-1.5 text-xs text-rose-600 font-body">
+                  <AlertCircle size={14} /> Institution is required (write 'Independent' if unaffiliated)
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-6">
-          <div className="grid gap-5 md:grid-cols-2">
-            <InputField
-              id="submission-name"
-              name="name"
-              label="Name"
-              required
-              value={formValues.name}
-              onChange={handleInputChange}
-              onBlur={() => markTouched('name')}
-              placeholder="Your full name"
-              error={getVisibleError('name')}
-            />
-
-            <InputField
-              id="submission-email"
-              name="email"
-              label="Email"
-              required
-              type="email"
-              value={formValues.email}
-              onChange={handleInputChange}
-              onBlur={() => markTouched('email')}
-              placeholder="name@example.com"
-              error={getVisibleError('email')}
-            />
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            {/* Phone field removed per request */}
-
-            <InputField
-              id="submission-city"
-              name="city"
-              label="City"
-              required
-              value={formValues.city}
-              onChange={handleInputChange}
-              onBlur={() => markTouched('city')}
-              placeholder="Your city"
-              error={getVisibleError('city')}
-            />
-
-            <InputField
-              id="submission-institution"
-              name="institution"
-              label="Institution"
-              required
-              value={formValues.institution}
-              onChange={handleInputChange}
-              onBlur={() => markTouched('institution')}
-              placeholder="Your school/university/organization"
-              error={getVisibleError('institution')}
-            />
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            <label htmlFor="submission-genre" className="block">
-              <span className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-storm-slate/58">
-                Genre *
-              </span>
-              <select
-                id="submission-genre"
-                name="genre"
-                value={formValues.genre}
-                onChange={handleInputChange}
-                onBlur={() => markTouched('genre')}
-                className={`mt-3 w-full rounded-[1.15rem] border bg-white/90 px-4 py-3.5 font-body text-base text-deep-ink shadow-[0_12px_28px_-24px_rgba(23,34,52,0.72)] transition-colors duration-200 ${
-                  getVisibleError('genre')
-                    ? 'border-rose-300 focus:border-rose-400'
-                    : 'border-storm-slate/12 focus:border-warm-sand'
-                }`}
-              >
-                <option value="">Select a genre...</option>
-                {genres.map((genre) => (
-                  <option key={genre} value={genre}>{genre}</option>
-                ))}
-              </select>
-              {getVisibleError('genre') && (
-                <p className="mt-2 flex items-center gap-2 font-body text-sm text-rose-600">
-                  <AlertCircle size={16} />
-                  {getVisibleError('genre')}
-                </p>
-              )}
-            </label>
-          </div>
-
-          <InputField
-            id="submission-title"
-            name="title"
-            label="Title of work"
-            required
-            value={formValues.title}
-            onChange={handleInputChange}
-            onBlur={() => markTouched('title')}
-            placeholder="Title of your piece"
-            error={getVisibleError('title')}
-          />
-
-          <div>
-            <p className="font-body text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-storm-slate/58">
-              File upload
-            </p>
-
-            <label
-              htmlFor="submission-file"
-              className="mt-3 flex cursor-pointer flex-col gap-3 rounded-[1.4rem] border border-dashed border-storm-slate/18 bg-rain-mist/62 px-5 py-5 transition-colors duration-200 hover:border-warm-sand/60 hover:bg-rain-mist/80 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="flex items-start gap-3">
-                <span className="rounded-full bg-white p-3 text-storm-slate shadow-[0_12px_24px_-18px_rgba(23,34,52,0.7)]">
-                  <Upload size={20} />
-                </span>
-                <div>
-                  <p className="font-body text-base font-semibold text-deep-ink">
-                    Add an optional supporting file
-                  </p>
-                  <p className="mt-1 font-body text-sm leading-6 text-deep-ink/62">
-                    Accepted formats: PDF, DOCX, TXT. Maximum size: 10MB.
-                  </p>
-                </div>
-              </div>
-
-              <span className="inline-flex items-center justify-center rounded-full bg-white px-4 py-2 font-body text-xs font-semibold uppercase tracking-[0.22em] text-storm-slate shadow-[0_12px_24px_-18px_rgba(23,34,52,0.7)]">
-                Choose file
-              </span>
-            </label>
-
-            <input
-              id="submission-file"
-              type="file"
-              accept=".pdf,.docx,.txt"
-              onChange={handleFileChange}
-              className="sr-only"
-            />
-
-            <AnimatePresence>
-              {formValues.file ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  className="mt-4 flex flex-col gap-3 rounded-[1.25rem] border border-storm-slate/12 bg-white/92 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="rounded-full bg-rain-mist p-2.5 text-storm-slate">
-                      <FileText size={18} />
-                    </span>
-                    <div>
-                      <p className="font-body text-sm font-semibold text-deep-ink">
-                        {formValues.file.name}
-                      </p>
-                      <p className="mt-1 font-body text-xs uppercase tracking-[0.18em] text-storm-slate/55">
-                        {(formValues.file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={removeSelectedFile}
-                    className="inline-flex items-center gap-2 rounded-full border border-storm-slate/12 bg-white px-4 py-2 font-body text-xs font-semibold uppercase tracking-[0.22em] text-storm-slate transition-colors duration-200 hover:border-rose-300 hover:text-rose-600"
-                  >
-                    <Trash2 size={14} />
-                    Remove
-                  </button>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-
-            <FieldError message={getVisibleError('file')} />
-          </div>
-
-          <label htmlFor="submission-age" className="flex items-start gap-3 cursor-pointer">
-            <input
-              id="submission-age"
-              type="checkbox"
-              name="ageVerified"
-              checked={formValues.ageVerified}
-              onChange={(e) => {
-                updateField('ageVerified', e.target.checked);
-                markTouched('ageVerified');
-              }}
-              onBlur={() => markTouched('ageVerified')}
-              className="mt-2 h-5 w-5 rounded border-storm-slate/12 text-warm-sand"
-            />
-            <span className="font-body text-sm leading-6 text-deep-ink/72">
-              I confirm that I am under 25 years old at the time of submission *
+        {/* Article & Content Card */}
+        <div className="rounded-[2.5rem] border border-white/70 bg-white/65 p-8 sm:p-12 shadow-[0_26px_90px_-60px_rgba(23,34,52,0.7)] backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-storm-slate text-xs font-bold text-white">
+              2
             </span>
-          </label>
-          {getVisibleError('ageVerified') && (
-            <p className="flex items-center gap-2 font-body text-sm text-rose-600">
-              <AlertCircle size={16} />
-              {getVisibleError('ageVerified')}
-            </p>
-          )}
+            <h2 className="font-heading text-2xl sm:text-3xl text-storm-slate">
+              Select Category & Paste Your Work
+            </h2>
+          </div>
 
-          <AnimatePresence mode="wait">
-            {submitError ? (
-              <motion.div
-                key="submit-error"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="rounded-[1.2rem] border border-rose-200 bg-rose-50 px-4 py-3 font-body text-sm text-rose-700"
-              >
-                {submitError}
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-
-          <AnimatePresence mode="wait">
-            {successMessage ? (
-              <motion.div
-                key="submit-success"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="flex items-start gap-3 rounded-[1.2rem] border border-emerald-200 bg-emerald-50 px-4 py-3 font-body text-sm text-emerald-700"
-              >
-                <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
-                <span>{successMessage}</span>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-
-          <div className="flex flex-col gap-4 border-t border-storm-slate/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-body text-sm font-semibold text-deep-ink">
-                Required: name, email, city, genre, age verification, and file upload.
+          {/* Category Toggle */}
+          <div className="mt-6">
+            <label className="block font-body text-xs font-semibold uppercase tracking-wider text-storm-slate mb-3">
+              Submission Category *
+            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {genres.map((g) => {
+                const isSelected = formValues.genre === g.name;
+                return (
+                  <button
+                    key={g.name}
+                    type="button"
+                    onClick={() => handleChange('genre', g.name)}
+                    className={`relative rounded-2xl border p-5 text-left transition-all duration-300 ${
+                      isSelected
+                        ? 'border-storm-slate bg-storm-slate text-white shadow-lg'
+                        : 'border-storm-slate/15 bg-white/70 text-deep-ink hover:border-warm-sand hover:bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className={`font-heading text-xl ${isSelected ? 'text-white' : 'text-storm-slate'}`}>
+                        {g.name}
+                      </h3>
+                      <span
+                        className={`rounded-full px-3 py-1 font-body text-xs font-semibold tracking-wide ${
+                          isSelected ? 'bg-white/20 text-white' : 'bg-warm-sand/20 text-storm-slate'
+                        }`}
+                      >
+                        {g.limits}
+                      </span>
+                    </div>
+                    <p className={`mt-2 font-body text-xs leading-relaxed ${isSelected ? 'text-white/80' : 'text-deep-ink/65'}`}>
+                      {g.description}
                     </p>
-              <p className="mt-1 font-body text-sm leading-6 text-deep-ink/62">
-                {submitDisabledReason
-                  ? `Submit is disabled: ${submitDisabledReason}.`
-                  : 'Submit is disabled until the form is valid.'}
-              </p>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitDisabled}
-              className={`inline-flex min-w-[12rem] items-center justify-center rounded-full px-6 py-3.5 font-body text-sm font-semibold uppercase tracking-[0.24em] transition-all duration-200 ${
-                isSubmitDisabled
-                  ? 'cursor-not-allowed bg-storm-slate/14 text-storm-slate/40'
-                  : 'bg-deep-ink text-rain-mist shadow-[0_20px_40px_-22px_rgba(23,34,52,0.82)] hover:-translate-y-0.5 hover:bg-storm-slate'
-              }`}
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit entry'}
-            </button>
-          </div>
-        </form>
-      </motion.div>
-
-      <div className="space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
-          className="rounded-[2rem] border border-white/12 bg-deep-ink p-6 text-rain-mist shadow-[0_32px_90px_-54px_rgba(23,34,52,1)] sm:p-7"
-        >
-          <p className="font-body text-[0.68rem] uppercase tracking-[0.38em] text-warm-sand/80">
-            Safe window checks
-          </p>
-          <h3 className="mt-4 font-heading text-4xl leading-[0.94] text-rain-mist">
-            The form rechecks the date before it accepts anything.
-          </h3>
-          <p className="mt-5 font-body text-sm leading-7 text-rain-mist/72 sm:text-base">
-            Client-side visibility is helpful, but the shared validation function is the
-            final guard for rejecting early or late submissions.
-          </p>
-
-          <div className="mt-6 space-y-3">
-            <div className="rounded-[1.3rem] border border-white/10 bg-white/6 p-4">
-              <p className="font-body text-[0.64rem] uppercase tracking-[0.28em] text-rain-mist/54">
-                Opens
-              </p>
-              <p className="mt-2 font-body text-sm leading-6 text-rain-mist">
-                {opensAtLabel}
-              </p>
-            </div>
-            <div className="rounded-[1.3rem] border border-white/10 bg-white/6 p-4">
-              <p className="font-body text-[0.64rem] uppercase tracking-[0.28em] text-rain-mist/54">
-                Closes
-              </p>
-              <p className="mt-2 font-body text-sm leading-6 text-rain-mist">
-                {closesAtLabel}
-              </p>
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-          className="rounded-[2rem] border border-white/72 bg-white/70 p-6 shadow-[0_24px_70px_-60px_rgba(23,34,52,0.9)] backdrop-blur-xl sm:p-7"
-        >
-          <p className="font-body text-[0.68rem] uppercase tracking-[0.38em] text-storm-slate/58">
-            Submission notes
-          </p>
-
-          <div className="mt-5 space-y-4">
-            <div className="flex gap-3">
-              <span className="mt-1 rounded-full bg-emerald-500/10 p-2 text-emerald-700">
-                <ShieldCheck size={16} />
-              </span>
-              <p className="font-body text-sm leading-7 text-deep-ink/72 sm:text-base">
-                Required validation keeps incomplete entries from being sent.
+          {/* Title */}
+          <div className="mt-8">
+            <label htmlFor="title" className="block font-body text-xs font-semibold uppercase tracking-wider text-storm-slate">
+              Title of Work *
+            </label>
+            <input
+              id="title"
+              type="text"
+              value={formValues.title}
+              onChange={(e) => handleChange('title', e.target.value)}
+              onBlur={() => handleBlur('title')}
+              placeholder="e.g. Monsoon at 3 AM"
+              className="mt-2 w-full rounded-2xl border border-storm-slate/15 bg-white/80 px-4 py-3.5 font-body text-sm text-deep-ink transition-all placeholder:text-deep-ink/35 focus:border-storm-slate focus:bg-white focus:outline-none focus:ring-2 focus:ring-storm-slate/10"
+            />
+            {touched.title && !formValues.title.trim() && (
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-rose-600 font-body">
+                <AlertCircle size={14} /> Title is required
               </p>
-            </div>
-            <div className="flex gap-3">
-              <span className="mt-1 rounded-full bg-emerald-500/10 p-2 text-emerald-700">
-                <ShieldCheck size={16} />
-              </span>
-              <p className="font-body text-sm leading-7 text-deep-ink/72 sm:text-base">
-                Allowed file types are limited to PDF, DOCX, and TXT with a 10MB cap.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <span className="mt-1 rounded-full bg-emerald-500/10 p-2 text-emerald-700">
-                <ShieldCheck size={16} />
-              </span>
-              <p className="font-body text-sm leading-7 text-deep-ink/72 sm:text-base">
-                You'll receive an automated confirmation email once your submission is received.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <span className="mt-1 rounded-full bg-emerald-500/10 p-2 text-emerald-700">
-                <ShieldCheck size={16} />
-              </span>
-              <p className="font-body text-sm leading-7 text-deep-ink/72 sm:text-base">
-                Must confirm you're under 25 and select a genre (Poetry, Prose, or Flash Fiction).
-              </p>
-            </div>
+            )}
           </div>
-        </motion.div>
-      </div>
+
+          {/* Content Textarea */}
+          <div className="mt-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+              <label htmlFor="content" className="block font-body text-xs font-semibold uppercase tracking-wider text-storm-slate">
+                Article / Poem Content (Paste Directly) *
+              </label>
+
+              {/* Dynamic Live Counter */}
+              <div className="flex items-center gap-2">
+                {selectedGenreConfig.type === 'lines' ? (
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 font-body text-xs font-semibold ${
+                      lineCount >= 40 && lineCount <= 50
+                        ? 'bg-emerald-500/15 text-emerald-700 border border-emerald-500/30'
+                        : lineCount > 0
+                        ? 'bg-amber-500/15 text-amber-800 border border-amber-500/30'
+                        : 'bg-storm-slate/10 text-storm-slate/70'
+                    }`}
+                  >
+                    {lineCount >= 40 && lineCount <= 50 && <Check size={13} />}
+                    Lines: {lineCount} / 40–50
+                  </span>
+                ) : (
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 font-body text-xs font-semibold ${
+                      wordCount >= 600 && wordCount <= 700
+                        ? 'bg-emerald-500/15 text-emerald-700 border border-emerald-500/30'
+                        : wordCount > 0
+                        ? 'bg-amber-500/15 text-amber-800 border border-amber-500/30'
+                        : 'bg-storm-slate/10 text-storm-slate/70'
+                    }`}
+                  >
+                    {wordCount >= 600 && wordCount <= 700 && <Check size={13} />}
+                    Words: {wordCount} / 600–700
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <textarea
+              id="content"
+              rows={16}
+              value={formValues.content}
+              onChange={(e) => handleChange('content', e.target.value)}
+              onBlur={() => handleBlur('content')}
+              placeholder={
+                selectedGenreConfig.type === 'lines'
+                  ? 'Paste your poem here (40 to 50 lines)...\nLine breaks are automatically preserved.'
+                  : 'Paste your prose piece here (600 to 700 words)...'
+              }
+              className="w-full rounded-2xl border border-storm-slate/20 bg-white/90 p-5 font-body text-sm leading-7 text-deep-ink placeholder:text-deep-ink/35 focus:border-storm-slate focus:bg-white focus:outline-none focus:ring-2 focus:ring-storm-slate/15"
+            />
+
+            {/* Helper guidance note under textarea */}
+            <div className="mt-3 flex items-start gap-2 text-xs font-body text-deep-ink/65">
+              <Info size={15} className="shrink-0 mt-0.5 text-storm-slate/60" />
+              <span>
+                {selectedGenreConfig.type === 'lines'
+                  ? 'Lines are counted by non-empty verses. Ensure your poem falls cleanly between 40 and 50 lines.'
+                  : 'Words are calculated automatically. Ensure your prose piece falls between 600 and 700 words.'}
+              </span>
+            </div>
+
+            {touched.content && !formValues.content.trim() && (
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-rose-600 font-body">
+                <AlertCircle size={14} /> Please paste your work content above
+              </p>
+            )}
+          </div>
+
+          {/* Age Verification Checkbox */}
+          <div className="mt-8 pt-6 border-t border-storm-slate/10">
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={formValues.ageVerified}
+                onChange={(e) => handleChange('ageVerified', e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-storm-slate/30 text-storm-slate focus:ring-storm-slate"
+              />
+              <span className="font-body text-xs sm:text-sm leading-6 text-deep-ink/80">
+                I certify that I am <strong>aged 25 or under</strong>, that this work is entirely my own original, unpublished writing in English, and that no AI generative tools were used in its creation.
+              </span>
+            </label>
+            {touched.ageVerified && !formValues.ageVerified && (
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-rose-600 font-body">
+                <AlertCircle size={14} /> Confirmation of eligibility is required
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Global Error Banner */}
+        {errorMessage && (
+          <div className="flex items-center gap-3 rounded-2xl border border-rose-300 bg-rose-50/90 px-6 py-4 font-body text-sm text-rose-700">
+            <AlertCircle size={18} className="shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {/* Submit Actions */}
+        <div className="text-center">
+          <button
+            type="submit"
+            disabled={status === 'submitting'}
+            className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-storm-slate px-10 py-4 font-body text-xs font-semibold uppercase tracking-[0.28em] text-white shadow-[0_20px_50px_-20px_rgba(44,74,110,0.8)] transition-all duration-300 hover:bg-deep-ink hover:shadow-[0_25px_60px_-20px_rgba(23,34,52,0.9)] disabled:opacity-50 cursor-pointer"
+          >
+            {status === 'submitting' ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                Submitting Entry...
+              </>
+            ) : (
+              <>
+                <span>Submit to Soft Apocalypse India</span>
+                <Sparkles size={16} className="transition-transform group-hover:rotate-12" />
+              </>
+            )}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

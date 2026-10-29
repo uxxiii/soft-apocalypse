@@ -1,23 +1,13 @@
 export const IST_TIME_ZONE = 'Asia/Kolkata';
-export const SUBMISSION_OPEN_DATE = new Date('2026-04-16T00:00:00+05:30'); // Always open
-export const SUBMISSION_CLOSE_DATE = new Date('2026-05-31T23:59:59+05:30'); // May 31 @ 11:59 PM IST
+export const SUBMISSION_OPEN_DATE = new Date('2026-01-01T00:00:00+05:30'); // Submissions open
+export const SUBMISSION_CLOSE_DATE = new Date('2026-12-31T23:59:59+05:30'); // Extended window
 
 function normalizeDate(dateInput = new Date()) {
   return dateInput instanceof Date ? dateInput : new Date(dateInput);
 }
 
 export function getSubmissionStatus(currentDate = new Date()) {
-  const now = normalizeDate(currentDate);
-
-  if (now < SUBMISSION_OPEN_DATE) {
-    return 'pre';
-  }
-
-  if (now <= SUBMISSION_CLOSE_DATE) {
-    return 'open';
-  }
-
-  return 'closed';
+  return 'open';
 }
 
 export function getCountdownParts(targetDate = SUBMISSION_OPEN_DATE, currentDate = new Date()) {

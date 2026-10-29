@@ -78,12 +78,12 @@ img {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(44, 74, 110, 0.82), rgba(196, 168, 130, 0.72));
+  background: #2c4a6e;
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(44, 74, 110, 0.95), rgba(196, 168, 130, 0.92));
+  background: #233b58;
 }
 
 *:focus-visible {

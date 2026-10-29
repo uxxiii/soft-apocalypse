@@ -35,7 +35,7 @@ export default function Home() {
             <div className="rounded-[2rem] border border-white/70 bg-white/62 p-7 shadow-[0_26px_90px_-60px_rgba(23,34,52,0.8)] backdrop-blur-xl sm:p-10">
               <div className="space-y-6 font-body text-base leading-8 text-deep-ink/74 sm:text-lg">
                 <p>
-                  Soft Apocalypse 2026 is a national selectively curated literary anthology bringing together two hundred of the most compelling young writers in India into a single, professionally produced volume. Poetry, prose, and flash fiction sit together in one carefully edited collection.
+                  Soft Apocalypse India is a national selectively curated literary anthology bringing together two hundred of the most compelling young writers in India into a single, professionally produced volume. Poetry, prose, and flash fiction sit together in one carefully edited collection.
                 </p>
                 <p>
                   This is not a competition, It is a collaboration. It is a curatorial project designed to surface voices already reshaping contemporary Indian writing and give them a stage that feels serious, tactile, and lasting.
@@ -98,7 +98,7 @@ export default function Home() {
               <div className="space-y-6">
                 <p className="font-body text-base leading-8 text-deep-ink/74 sm:text-lg">
                   We've partnered with a major industry powerhouse to bring Soft Apocalypse
-                  2026 the professional infrastructure and reach it deserves. The official
+                  India the professional infrastructure and reach it deserves. The official
                   collaboration reveal is coming soon—follow @softapocalypse.in to be the
                   first to know.
                 </p>
@@ -165,7 +165,7 @@ export default function Home() {
             <div className="rounded-[2rem] border border-white/70 bg-gradient-to-br from-warm-sand/40 via-white/60 to-storm-slate/10 p-8 shadow-[0_28px_90px_-64px_rgba(23,34,52,0.85)] backdrop-blur-xl sm:p-12 lg:p-16 text-center">
               <div className="mx-auto max-w-2xl space-y-6 font-body text-base leading-8 text-deep-ink/74 sm:text-lg">
                 <p>
-                  Soft Apocalypse 2026 is more than an anthology. It's a living archive of voices
+                  Soft Apocalypse India is more than an anthology. It's a living archive of voices
                   shaping the now and the next of Indian writing.
                 </p>
                 <p>
@@ -200,7 +200,7 @@ export default function Home() {
 
           <AnimatedSection className="text-center">
             <p className="font-body text-sm uppercase tracking-[0.28em] text-storm-slate/48">
-              Soft Apocalypse 2026 &mdash; A literary anthology for the end of the world as we know it.
+              Soft Apocalypse India &mdash; A literary anthology for the end of the world as we know it.
             </p>
           </AnimatedSection>
         </div>

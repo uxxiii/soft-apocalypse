@@ -2,7 +2,7 @@ import AnimatedSection from './AnimatedSection';
 import SectionDivider from './SectionDivider';
 
 export default function PageHeader({
-  eyebrow = 'Soft Apocalypse 2026',
+  eyebrow = 'Soft Apocalypse India',
   title,
   description,
   stats = [],

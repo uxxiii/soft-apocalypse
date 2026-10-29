@@ -1,5 +1,5 @@
 /**
- * Judge data for Soft Apocalypse 2026
+ * Judge data for Soft Apocalypse India
  * Built for scalability — add new judges by appending objects to this array.
  * Photos and statements to be provided by the client.
  */
@@ -33,7 +33,7 @@ export const judges = [
     department: 'Department of Creative Writing',
     institution: 'Ashoka University',
     position: 'Assistant Professor & Workshop Director',
-    statement: 'I run creative writing workshops for undergraduates, and I can tell you that the talent in this age group is staggering. What it often lacks is not skill but confidence — the confidence that their stories deserve to exist in print, that their perspectives have literary weight. Soft Apocalypse 2026 is designed to address exactly that gap. Being published in a professionally produced anthology, alongside peers who share their ambition and age, is transformative. I have seen it happen. A single publication credit can shift a young writer\'s entire self-concept from "someone who writes" to "a writer." As a judge, I am looking for emotional precision, structural awareness, and — above all — an authentic voice. I don\'t want writers performing maturity. I want writers performing truth.',
+    statement: 'I run creative writing workshops for undergraduates, and I can tell you that the talent in this age group is staggering. What it often lacks is not skill but confidence — the confidence that their stories deserve to exist in print, that their perspectives have literary weight. Soft Apocalypse India is designed to address exactly that gap. Being published in a professionally produced anthology, alongside peers who share their ambition and age, is transformative. I have seen it happen. A single publication credit can shift a young writer\'s entire self-concept from "someone who writes" to "a writer." As a judge, I am looking for emotional precision, structural awareness, and — above all — an authentic voice. I don\'t want writers performing maturity. I want writers performing truth.',
   },
   {
     id: 4,

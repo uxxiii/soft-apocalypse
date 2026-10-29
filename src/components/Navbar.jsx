@@ -77,7 +77,7 @@ export default function Navbar() {
                     Soft Apocalypse
                   </span>
                   <span className="mt-0.5 block font-body text-[0.5rem] sm:text-[0.6rem] uppercase tracking-[0.26em] sm:tracking-[0.34em] text-storm-slate/55">
-                    National anthology 2026
+                    National anthology
                   </span>
                 </div>
               </Link>
@@ -153,7 +153,7 @@ export default function Navbar() {
                 <div className="flex items-start justify-between gap-6">
                   <div>
                     <p className="font-body text-[0.68rem] uppercase tracking-[0.36em] text-warm-sand/80">
-                      Soft Apocalypse 2026
+                      Soft Apocalypse India
                     </p>
                     <h2 className="mt-3 max-w-xs font-heading text-4xl leading-none text-rain-mist">
                       An anthology for the next literary generation.

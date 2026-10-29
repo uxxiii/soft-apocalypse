@@ -1,84 +1,96 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const { submitToGoogle } = require('../services/googleService');
+const { saveSubmission } = require('../services/supabaseService');
 const { sendConfirmationEmail } = require('../services/emailService');
 
-// Configure multer for file handling
-const upload = multer({
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
-  },
-});
+function countWords(text) {
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function countLines(text) {
+  if (!text) return 0;
+  return text.split('\n').filter((line) => line.trim().length > 0).length;
+}
 
 /**
- * Submit form + file to Google Drive and Sheets
+ * Submit article (text format) to Supabase database
  */
-router.post('/submit', upload.single('file'), async (req, res) => {
+router.post('/submit', async (req, res) => {
   try {
-    // DEBUG: Log incoming data with types to help trace missing fields
-    console.log('🔍 DEBUG - req.headers.content-type:', req.headers['content-type']);
-    console.log('🔍 DEBUG - req.body keys:', Object.keys(req.body));
-    Object.entries(req.body).forEach(([k, v]) => {
-      console.log(`🔍 DEBUG - req.body[${k}] (type=${typeof v}):`, v);
+    const { name, email, city, institution, genre, title, content, ageVerified } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !city || !institution || !genre || !title || !content) {
+      return res.status(400).json({
+        error: 'All fields (Name, Email, City, Institution, Category, Title, and Article Content) are required.',
+      });
+    }
+
+    if (!ageVerified) {
+      return res.status(400).json({
+        error: 'You must confirm you are aged 25 or under.',
+      });
+    }
+
+    const trimmedGenre = genre.trim();
+    if (!['Poetry', 'Prose'].includes(trimmedGenre)) {
+      return res.status(400).json({
+        error: 'Category must be either Poetry or Prose.',
+      });
+    }
+
+    const wordCount = countWords(content);
+    const lineCount = countLines(content);
+
+    // Validation according to specifications:
+    // Poetry: 40–50 lines
+    // Prose: 600–700 words
+    if (trimmedGenre === 'Poetry') {
+      if (lineCount < 40 || lineCount > 50) {
+        return res.status(400).json({
+          error: `Poetry submissions must be between 40 and 50 lines. Your poem currently has ${lineCount} lines.`,
+        });
+      }
+    } else if (trimmedGenre === 'Prose') {
+      if (wordCount < 600 || wordCount > 700) {
+        return res.status(400).json({
+          error: `Prose submissions must be between 600 and 700 words. Your piece currently has ${wordCount} words.`,
+        });
+      }
+    }
+
+    console.log(`📝 Saving submission from ${name} (${trimmedGenre} - "${title}")`);
+
+    // Save to Supabase
+    const saved = await saveSubmission({
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      city: city.trim(),
+      institution: institution.trim(),
+      genre: trimmedGenre,
+      title: title.trim(),
+      content: content.trim(),
+      wordCount,
+      lineCount,
     });
-    console.log('🔍 DEBUG - req.file:', req.file ? { originalname: req.file.originalname, size: req.file.size } : 'NO FILE');
-    
-    const { name, email, city, institution, genre, title } = req.body;
-
-    // Validate required fields (phone removed)
-    if (!name || !email || !city || !institution || !genre || !title) {
-      console.log('❌ VALIDATION FAILED - Missing fields:', { name: !!name, email: !!email, city: !!city, institution: !!institution, genre: !!genre, title: !!title });
-      return res.status(400).json({
-        error: 'Missing required fields',
-      });
-    }
-
-    if (!req.file) {
-      return res.status(400).json({
-        error: 'File upload is required',
-      });
-    }
-
-    console.log(`📝 Receiving submission from ${name}`);
-
-    // Get file extension
-    const fileExt = req.file.originalname.split('.').pop();
-
-    // Submit to Google
-    const result = await submitToGoogle(
-      {
-        name,
-        email,
-        // phone intentionally omitted — not collecting anymore
-        city,
-        institution,
-        genre,
-        title,
-        fileName: req.file.originalname,
-        fileExt,
-      },
-      req.file.buffer,
-    );
 
     // Send confirmation email
     try {
-      await sendConfirmationEmail(email, name);
+      await sendConfirmationEmail(email.trim(), name.trim());
     } catch (emailError) {
-      console.warn('Email not sent, but submission successful:', emailError.message);
+      console.warn('⚠️ Confirmation email could not be sent, but submission saved:', emailError.message);
     }
 
-    // Return received body for debugging (temporary)
     res.json({
       ok: true,
-      message: 'Thank you for submitting! We\'ve received your entry and will notify you soon.',
-      fileLink: result.fileLink,
-      receivedBody: req.body,
+      message: 'Thank you for submitting! Your work has been successfully received by Soft Apocalypse India.',
+      submissionId: saved.id,
     });
   } catch (error) {
-    console.error('Error in /api/submit:', error);
+    console.error('❌ Error in /api/submit:', error);
     res.status(500).json({
-      error: error.message || 'Failed to submit to Google Sheets',
+      error: error.message || 'Failed to process submission',
     });
   }
 });
